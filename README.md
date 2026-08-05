@@ -1,23 +1,11 @@
-# Moving Target Monte Carlo: Independent Seismic Demo
+# Moving Target Monte Carlo: Synthetic Seismic Demo
 
 This repository presents the published Moving Target Monte Carlo (MTMC) method
 and a small synthetic seismic demonstration.
 
-## Independent Reimplementation
+The demo is a new implementation based on the publicly available paper.
 
-This repository contains an independent educational and portfolio
-reimplementation written from scratch in 2026 based solely on the publicly
-available paper.
-
-It does not contain source code, datasets, configuration files, or other
-proprietary materials from ETH Zurich or the original research environment.
-The code under `demo/` is not the original or official implementation used in
-the research project.
-
-Every input used by the demonstration is generated locally: the velocity
-model, acquisition geometry, observations, and noise are all synthetic.
-
-## Original research
+## Paper
 
 The method was introduced in:
 
@@ -28,14 +16,10 @@ The method was introduced in:
 - Local archival copy: [2003.04873v1.pdf](2003.04873v1.pdf)
 - Machine-readable citation: [CITATION.cff](CITATION.cff)
 
-The paper citation, archived PDF, and thesis figures document the original
-research. The new `demo/` implementation is deliberately separated from those
-research artifacts.
+## Synthetic demo
 
-## Public portfolio implementation
-
-The independent demo uses a four-parameter synthetic velocity model and 68
-straight source-receiver paths. It:
+The demo uses a four-parameter synthetic velocity model and 68 straight
+source-receiver paths. It:
 
 1. creates a rectangular velocity model entirely in memory;
 2. generates source and receiver locations on the domain boundaries;
@@ -62,9 +46,9 @@ Voronoi partition. A candidate inherits the true target value stored at its
 nearest site. When a candidate is accepted, its true target value is evaluated
 and appended to the archive, refining the probability-space reconstruction.
 
-The independent implementation uses the same independent Gaussian proposal for
-both samplers and retains the complete Hastings correction. Its logic follows
-this non-executable outline:
+The demo uses the same independent Gaussian proposal for both samplers and
+retains the complete Hastings correction. Its logic follows this
+non-executable outline:
 
 ```text
 Evaluate the true target at the initial state and create the archive.
@@ -161,11 +145,11 @@ python -m unittest discover -s demo/tests -v
 2003.04873v1.pdf              Archival copy of the public paper
 pic/formation.png             Thesis probability-reconstruction figure
 pic/result.png                Thesis low-dimensional comparison figure
-demo/forward_model.py         Independent midpoint straight-ray calculation
+demo/forward_model.py         Midpoint straight-ray calculation
 demo/synthetic_model.py       Synthetic observations and Gaussian posterior
 demo/metropolis.py            Conventional Metropolis-Hastings baseline
 demo/proposals.py             Proposal kernels and Hastings corrections
-demo/mtmc_reimplementation.py Independent nearest-neighbour MTMC
+demo/mtmc.py                  Nearest-neighbour MTMC
 demo/run_demo.py              Reproducible command-line experiment
 demo/tests/                    Deterministic unit tests
 ```
@@ -187,6 +171,6 @@ demo/tests/                    Deterministic unit tests
 
 Copyright (c) 2026 Keheng Mao. All rights reserved.
 
-No open-source software license is currently granted for the independent demo.
+No open-source software license is currently granted for the demo.
 Reuse of the paper and figures remains subject to their applicable publication
 and copyright terms.

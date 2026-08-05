@@ -1,4 +1,4 @@
-"""Run the independent synthetic seismic MTMC demonstration."""
+"""Run the synthetic seismic MTMC demonstration."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from typing import Sequence
 import numpy as np
 
 from .metropolis import SamplingResult, metropolis_hastings
-from .mtmc_reimplementation import nearest_neighbour_mtmc
+from .mtmc import nearest_neighbour_mtmc
 from .proposals import GaussianIndependenceProposal
 from .synthetic_model import GaussianLogPosterior, SyntheticProblem, build_synthetic_problem
 
@@ -100,7 +100,7 @@ def _save_figure(
     axes[1, 2].set_xlabel("Recorded sample")
     axes[1, 2].legend()
 
-    figure.suptitle("Independent synthetic MTMC seismic demonstration")
+    figure.suptitle("Synthetic MTMC seismic demonstration")
     figure.savefig(output_path, dpi=180)
     plt.close(figure)
 

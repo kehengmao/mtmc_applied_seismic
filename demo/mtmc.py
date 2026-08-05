@@ -1,4 +1,4 @@
-"""Independent nearest-neighbour Moving Target Monte Carlo implementation."""
+"""Nearest-neighbour Moving Target Monte Carlo implementation."""
 
 from __future__ import annotations
 

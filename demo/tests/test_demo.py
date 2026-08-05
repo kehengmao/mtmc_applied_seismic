@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 from demo.metropolis import metropolis_hastings, random_walk_metropolis
-from demo.mtmc_reimplementation import nearest_neighbour_mtmc
+from demo.mtmc import nearest_neighbour_mtmc
 from demo.proposals import GaussianIndependenceProposal
 from demo.synthetic_model import GaussianLogPosterior, build_synthetic_problem
 

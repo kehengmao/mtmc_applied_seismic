@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "Please cite the MTMC paper when referring to the method."
-title: "Independent Synthetic MTMC Seismic Demo"
+title: "Synthetic MTMC Seismic Demo"
 type: software
 authors:
   - family-names: Mao

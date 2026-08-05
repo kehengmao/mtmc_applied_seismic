@@ -1,20 +1,13 @@
-# Independent Synthetic Demo
+# Synthetic Demo
 
-This directory contains an independent educational reimplementation written
-from scratch in 2026 from the public mathematical description in *Moving
-Target Monte Carlo*.
-
-It does not contain, import, or depend on source code, datasets, configuration
-files, numerical models, or other materials from the original research
-environment. All geometry, observations, and noise are generated locally by
-the demo.
+All geometry, observations, and noise are generated locally by the demo.
 
 ## Problem
 
 The example uses a four-cell velocity model and 68 synthetic rays crossing the
 domain horizontally and vertically. Straight-ray travel times are calculated
-with independent midpoint quadrature, and Gaussian noise is added using a
-reproducible random seed.
+with midpoint quadrature, and Gaussian noise is added using a reproducible
+random seed.
 
 The forward relation is linear in cell slowness, so an analytical Gaussian
 posterior is available as a reference. The demo compares that reference with:

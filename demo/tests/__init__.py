@@ -1,1 +1,1 @@
-"""Tests for the independent synthetic demonstration."""
+"""Tests for the synthetic demonstration."""
