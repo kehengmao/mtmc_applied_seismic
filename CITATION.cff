@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "Please cite the MTMC paper when referring to the method."
+title: "Independent Synthetic MTMC Seismic Demo"
+type: software
+authors:
+  - family-names: Mao
+    given-names: Keheng
+version: 0.1.0
+date-released: 2026-08-06
+repository-code: "https://github.com/kehengmao/mtmc_applied_seismic"
+preferred-citation:
+  type: article
+  title: "Moving Target Monte Carlo"
+  authors:
+    - family-names: Ying
+      given-names: Haoyun
+    - family-names: Mao
+      given-names: Keheng
+    - family-names: Mosegaard
+      given-names: Klaus
+  year: 2020
+  collection-title: "arXiv"
+  identifiers:
+    - type: other
+      value: "arXiv:2003.04873"

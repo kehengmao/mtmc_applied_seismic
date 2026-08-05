@@ -1,150 +1,173 @@
-# Moving Target Monte Carlo
+# Moving Target Monte Carlo: Independent Seismic Demo
 
-This repository is a reference-only archive for the paper and selected thesis
-figures associated with Moving Target Monte Carlo (MTMC). It contains no
-executable implementation, software package, numerical model, test suite, or
-environment definition.
+This repository presents the published Moving Target Monte Carlo (MTMC) method
+and a small synthetic seismic demonstration.
 
-- Paper: [arXiv:2003.04873](https://arxiv.org/abs/2003.04873)
-- Local paper: [2003.04873v1.pdf](2003.04873v1.pdf)
+## Independent Reimplementation
 
-## Main idea
+This repository contains an independent educational and portfolio
+reimplementation written from scratch in 2026 based solely on the publicly
+available paper.
 
-MTMC samples a target distribution while simultaneously reconstructing an
-approximation of that distribution from previously evaluated points. Each true
-target evaluation is stored in an archive. The archived locations act as sites
-of a Voronoi partition, and every location inside a cell inherits the target
-value of its nearest archived site.
+It does not contain source code, datasets, configuration files, or other
+proprietary materials from ETH Zurich or the original research environment.
+The code under `demo/` is not the original or official implementation used in
+the research project.
 
-A proposed state is first tested against this reconstructed probability
-surface. The true target is evaluated only when the proposal passes that test.
-The newly evaluated point is then added to the archive, refining the Voronoi
-reconstruction used by later decisions.
+Every input used by the demonstration is generated locally: the velocity
+model, acquisition geometry, observations, and noise are all synthetic.
 
-The method therefore performs two coupled tasks:
+## Original research
 
-1. it generates samples; and
-2. it reconstructs the probability space during sampling.
+The method was introduced in:
 
-## Polished pseudocode
+> Haoyun Ying, Keheng Mao, and Klaus Mosegaard. "Moving Target Monte Carlo."
+> arXiv:2003.04873, 2020.
 
-The following non-executable pseudocode summarizes the nearest-neighbour MTMC
-procedure for a symmetric proposal. It is a conceptual presentation of the
-published algorithm, not a software implementation.
+- Public paper page: [arXiv:2003.04873](https://arxiv.org/abs/2003.04873)
+- Local archival copy: [2003.04873v1.pdf](2003.04873v1.pdf)
+- Machine-readable citation: [CITATION.cff](CITATION.cff)
+
+The paper citation, archived PDF, and thesis figures document the original
+research. The new `demo/` implementation is deliberately separated from those
+research artifacts.
+
+## Public portfolio implementation
+
+The independent demo uses a four-parameter synthetic velocity model and 68
+straight source-receiver paths. It:
+
+1. creates a rectangular velocity model entirely in memory;
+2. generates source and receiver locations on the domain boundaries;
+3. approximates straight-ray cell lengths with midpoint quadrature;
+4. produces travel-time observations with seeded Gaussian noise;
+5. constructs a Gaussian slowness posterior;
+6. samples it with independent-proposal Metropolis-Hastings and MTMC; and
+7. compares both sample means with the analytical linear-Gaussian posterior.
+
+The problem is intentionally low-dimensional. This keeps the demonstration
+easy to inspect and matches the regime in which a Voronoi nearest-neighbour
+approximation is most attractive.
+
+## MTMC idea
+
+Conventional Metropolis-Hastings evaluates the true target at every proposed
+state, including proposals that are rejected. MTMC instead maintains an
+approximation built from all previously evaluated states. A proposal is tested
+using that approximation, and the true target is evaluated only after the
+proposal passes the preliminary test.
+
+In the nearest-neighbour version, evaluated states are the sites of an implicit
+Voronoi partition. A candidate inherits the true target value stored at its
+nearest site. When a candidate is accepted, its true target value is evaluated
+and appended to the archive, refining the probability-space reconstruction.
+
+The independent implementation uses the same independent Gaussian proposal for
+both samplers and retains the complete Hastings correction. Its logic follows
+this non-executable outline:
 
 ```text
-Inputs
-    log target function L
-    symmetric proposal kernel Q
-    initial state x(0)
-    number of iterations N
+Evaluate the true target at the initial state and create the archive.
 
-Initialization
-    evaluate l(0) = L(x(0))
-    create archive A = {(x(0), l(0))}
-    set current state x = x(0)
-    set current true log target l = l(0)
-    record x(0)
+For each iteration:
+    propose a candidate from the independent Gaussian proposal
+    find the nearest evaluated state in the archive
+    use that state's target value as the candidate approximation
+    compute the preliminary acceptance ratio
 
-For iteration n = 1, ..., N
-    1. Draw a candidate y from Q(. | x).
+    if the preliminary test accepts:
+        evaluate the true target at the candidate
+        move to the candidate
+        add the evaluated candidate to the archive
+    otherwise:
+        keep the current state and leave the archive unchanged
 
-    2. Locate the nearest archived site:
-
-           j = arg min over i of distance(y, A[i].state)
-
-    3. Read the candidate value from the current Voronoi reconstruction:
-
-           reconstructed_log_target(y) = A[j].log_target
-
-    4. Form the preliminary log acceptance threshold:
-
-           log_alpha = min(0,
-                           reconstructed_log_target(y) - l)
-
-       For a non-symmetric proposal, also include the usual forward/reverse
-       proposal-density correction.
-
-    5. Draw u uniformly from (0, 1).
-
-       If log(u) < log_alpha:
-           evaluate the true value l_y = L(y)
-           set x = y
-           set l = l_y
-           append (y, l_y) to archive A
-
-       Otherwise:
-           retain the current x and l
-           leave archive A unchanged
-
-    6. Record x as sample x(n).
-
-Outputs
-    sampled states x(0), ..., x(N)
-    archive A of all true target evaluations
-    the final Voronoi reconstruction defined by A
+    record the current state
 ```
 
-In this form, the true target is evaluated once at initialization and once for
-each preliminarily accepted proposal. Rejected proposals require only a
-nearest-neighbour lookup in the current archive.
-
-## Relation to a conventional Metropolis step
-
-Only two conceptual changes are required:
-
-1. replace the candidate's immediate true target evaluation with the value of
-   its nearest archived Voronoi site; and
-2. move the true target evaluation into the accepted branch, then add that
-   evaluated point to the reconstruction archive.
-
-The sampler is adaptive and generally non-Markovian because every accepted
-point changes the probability surface used by future iterations. The paper
-provides the mathematical conditions and convergence arguments for this moving
-sequence of approximations.
+Thus the true target is evaluated once at initialization and once for every
+preliminarily accepted proposal. The conventional baseline evaluates it at
+every iteration.
 
 ## Formation of the probability distribution
 
 ![Evolution of the reconstructed probability surface](pic/formation.png)
 
-This figure illustrates the formation of the reconstructed probability
-distribution during sampling. Early iterations contain few evaluated sites and
-therefore large, piecewise-constant Voronoi regions. As accepted evaluations
-are added, the cells are subdivided and the major peaks, valleys, and ridges of
-the target distribution become progressively better resolved. The panels show
-probability-space reconstruction, not merely the accumulation of sample points.
+The figure illustrates probability-space reconstruction during sampling. With
+few evaluated sites, the nearest-neighbour surface contains large constant
+regions. Accepted evaluations divide those regions and progressively resolve
+the target distribution's main structure. The panels show reconstruction of
+the probability distribution, not merely a growing sample cloud.
 
 ## Low-dimensional performance
 
 ![Low-dimensional comparison](pic/result.png)
 
-The comparison illustrates the regime in which MTMC is most attractive: a
-low-dimensional parameter space with an expensive true target evaluation. In
-that setting, a relatively small archive can resolve the important probability
-structure, while rejected candidates can often be screened using inexpensive
-nearest-neighbour queries.
+In low dimensions, a modest archive can cover the important parts of parameter
+space while nearest-neighbour lookup remains inexpensive. This is the intended
+regime for the minimal demo: the true target represents the expensive step,
+and the reconstructed surface screens proposals before that calculation.
 
 ## High-dimensional limitation
 
-The Voronoi mechanism is also the main limitation. As dimension increases,
-sampled sites become sparse relative to the rapidly growing parameter-space
-volume. Nearest sites can be far from candidates, substantially more sites are
-needed to represent the probability surface, and explicit Voronoi connectivity
-can become expensive to construct and maintain. Even an implicit
-nearest-neighbour representation requires increasing search time, memory, and
-coverage.
+The same Voronoi mechanism becomes less effective as dimension increases.
+Evaluated sites become sparse relative to the growing volume, nearest sites can
+be far from candidates, and many more evaluations are required to represent
+the probability surface. Explicit Voronoi connectivity can also become costly;
+implicit nearest-neighbour lookup avoids constructing the cells but does not
+remove the coverage and search-cost problem.
 
-MTMC can therefore offer a significant advantage for suitable low-dimensional
-problems, but it is not a universal replacement for high-dimensional sampling
-methods.
+MTMC is therefore most compelling for suitable low-dimensional problems with
+expensive target evaluations. This repository does not present it as a
+universal replacement for high-dimensional samplers.
+
+## Install and run
+
+Python 3.10 or newer is recommended.
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m demo.run_demo
+```
+
+For a short deterministic run without plotting:
+
+```powershell
+python -m demo.run_demo --steps 800 --burn-in 200 --no-plot
+```
+
+Generated metrics, samples, and plots are written to `outputs/synthetic_demo/`
+and are excluded from version control.
+
+With the default seed and 12,000 recorded states, the verified reference run
+used 12,000 true target evaluations for conventional Metropolis-Hastings and
+1,644 for MTMC. Both posterior velocity means were within 1 m/s RMSE of the
+analytical posterior mean in that run. The synthetic target is deliberately
+cheap, so the evaluation count demonstrates the algorithmic difference more
+meaningfully than local wall-clock timing.
+
+Run the tests with:
+
+```powershell
+python -m unittest discover -s demo/tests -v
+```
 
 ## Repository contents
 
 ```text
-2003.04873v1.pdf   Local copy of the published paper
-pic/formation.png  Formation of the reconstructed probability distribution
-pic/result.png     Low-dimensional performance comparison
-README.md          Explanatory notes and non-executable pseudocode
+2003.04873v1.pdf              Archival copy of the public paper
+pic/formation.png             Thesis probability-reconstruction figure
+pic/result.png                Thesis low-dimensional comparison figure
+demo/forward_model.py         Independent midpoint straight-ray calculation
+demo/synthetic_model.py       Synthetic observations and Gaussian posterior
+demo/metropolis.py            Conventional Metropolis-Hastings baseline
+demo/proposals.py             Proposal kernels and Hastings corrections
+demo/mtmc_reimplementation.py Independent nearest-neighbour MTMC
+demo/run_demo.py              Reproducible command-line experiment
+demo/tests/                    Deterministic unit tests
 ```
 
 ## Citation
@@ -160,8 +183,10 @@ README.md          Explanatory notes and non-executable pseudocode
 }
 ```
 
-## Rights notice
+## Rights
 
-No executable source code is distributed in this repository, and no software
-license is granted by it. Reuse of the paper and figures remains subject to
-their applicable publication and copyright terms.
+Copyright (c) 2026 Keheng Mao. All rights reserved.
+
+No open-source software license is currently granted for the independent demo.
+Reuse of the paper and figures remains subject to their applicable publication
+and copyright terms.
